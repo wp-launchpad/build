@@ -2,7 +2,9 @@
 
 namespace LaunchpadBuild\Services;
 
+use LaunchpadBuild\Entities\Version;
 use League\Flysystem\Filesystem;
+use PhpZip\ZipFile;
 
 class FilesManager
 {
@@ -38,8 +40,11 @@ class FilesManager
         }
     }
 
-    public function generate_zip(string $plugin_directory)
+    public function generate_zip(string $plugin_directory, string $build_directory, string $plugin_name, Version $version = null)
     {
-
+        $version = is_null($version) ? '1.0.0' : $version->get_value();
+        $zipFile = new ZipFile();
+        $zipFile->addDirRecursive($plugin_directory);
+        $zipFile->saveAsFile($build_directory . DIRECTORY_SEPARATOR . $plugin_name . '_' . $version . '.zip');
     }
 }

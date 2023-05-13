@@ -2,6 +2,7 @@
 
 namespace LaunchpadBuild;
 
+use Ahc\Cli\Helper\Shell;
 use LaunchpadBuild\Commands\BuildArtifactCommand;
 use LaunchpadBuild\Services\FilesManager;
 use LaunchpadBuild\Services\ProjectManager;
