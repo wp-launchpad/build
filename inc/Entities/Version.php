@@ -18,13 +18,21 @@ class Version
     }
 
     public function get_value(): string {
-
+        return $this->value;
     }
 
     public function set_value(string $value) {
+        if(! preg_match('/^(\d+\.)?(\d+\.)?(\*|\d+)$/', $value)) {
+            throw new InvalidValue('Invalid version');
+        }
         $this->value = $value;
     }
     public function increase() {
+        $parts = explode(".", $this->value);
+        $part = array_pop($parts);
+        $part ++;
+        $parts []= $part;
 
+        $this->value = implode( ".", $parts );
     }
 }
