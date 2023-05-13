@@ -12,6 +12,15 @@ class ProjectManager
      */
     protected $filesystem;
 
+    /**
+     * @param Filesystem $filesystem
+     */
+    public function __construct(Filesystem $filesystem)
+    {
+        $this->filesystem = $filesystem;
+    }
+
+
     public function get_plugin_name() : string {
 
     }

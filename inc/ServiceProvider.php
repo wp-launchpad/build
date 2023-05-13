@@ -2,11 +2,12 @@
 
 namespace LaunchpadBuild;
 
+use LaunchpadBuild\Commands\BuildArtifactCommand;
+use LaunchpadBuild\Services\FilesManager;
+use LaunchpadBuild\Services\ProjectManager;
 use LaunchpadCLI\App;
 use LaunchpadCLI\Entities\Configurations;
 use LaunchpadCLI\ServiceProviders\ServiceProviderInterface;
-use LaunchpadCLI\Templating\Renderer;
-use League\Flysystem\Adapter\Local;
 use League\Flysystem\Filesystem;
 
 class ServiceProvider implements ServiceProviderInterface
@@ -40,6 +41,8 @@ class ServiceProvider implements ServiceProviderInterface
 
     public function attach_commands(App $app): App
     {
-        // TODO: Implement attach_commands() method.
+        $project_manager = new ProjectManager($this->filesystem);
+        $files_manager = new FilesManager($this->filesystem);
+        $app->add(new BuildArtifactCommand($files_manager, $project_manager));
     }
 }
