@@ -52,7 +52,7 @@ class BuildArtifactCommand extends Command
         $builder_folder = 'build';
         $plugin_directory = $builder_folder . DIRECTORY_SEPARATOR . $this->project_manager->get_plugin_name();
         $io = $this->app()->io();
-        $io->writeln('Start cleaning build folder', true);
+        $io->write('Start cleaning build folder', true);
         $this->file_manager->clean_folder($builder_folder);
         $io->write('End cleaning build folder', true);
         $io->write('Start copying assets', true);
