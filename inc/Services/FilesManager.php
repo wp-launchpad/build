@@ -29,7 +29,7 @@ class FilesManager
             if($content['type'] === 'dir') {
                 $path = $destination . DIRECTORY_SEPARATOR . $content['path'];
                 $this->filesystem->createDir($path);
-                $this->copy($content['path'], $path);
+                $this->copy($content['path'], $destination);
                 continue;
             }
             $this->filesystem->copy($content['path'], $destination . DIRECTORY_SEPARATOR . $content['path']);
