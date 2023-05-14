@@ -22,12 +22,14 @@ class FilesManager
     }
 
     public function copy(string $folder, string $destination, array $exclusions = []) {
-        foreach ($this->filesystem->listContents($folder, true) as $content) {
+        foreach ($this->filesystem->listContents($folder) as $content) {
             if($this->is_excluded($content['path'], $exclusions)) {
                 continue;
             }
             if($content['type'] === 'dir') {
-                $this->filesystem->createDir($destination . DIRECTORY_SEPARATOR . $content['path']);
+                $path = $destination . DIRECTORY_SEPARATOR . $content['path'];
+                $this->filesystem->createDir($path);
+                $this->copy($content['path'], $path);
                 continue;
             }
             $this->filesystem->copy($content['path'], $destination . DIRECTORY_SEPARATOR . $content['path']);
