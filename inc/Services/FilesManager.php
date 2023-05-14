@@ -45,6 +45,7 @@ class FilesManager
         $version = is_null($version) ? '1.0.0' : $version->get_value();
         $zipFile = new ZipFile();
         $zipFile->addDirRecursive($plugin_directory);
-        $zipFile->saveAsFile($build_directory . DIRECTORY_SEPARATOR . $plugin_name . '_' . $version . '.zip');
+        $content = $zipFile->outputAsString();
+        $this->filesystem->write($build_directory . DIRECTORY_SEPARATOR . $plugin_name . '_' . $version . '.zip', $content);
     }
 }
