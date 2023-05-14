@@ -79,7 +79,7 @@ class BuildArtifactCommand extends Command
         $this->file_manager->clean_folder($builder_folder);
         $io->write('End cleaning build folder', true);
         $io->write('Start updating version', true);
-        $this->project_manager->update_version();
+        $this->project_manager->update_version($version);
         $io->write('End updating version', true);
         $io->write('Start copying assets', true);
         $this->file_manager->copy('.', $plugin_directory, [$builder_folder, '.git', '.github', '.idea', 'phpcs.xml', 'README.MD']);
@@ -101,7 +101,7 @@ class BuildArtifactCommand extends Command
         $this->project_manager->run_optimise_autoload($plugin_directory);
         $io->write('End optimize autoloader', true);
         $io->write('Start zip artifact', true);
-        $this->file_manager->generate_zip($plugin_directory, $builder_folder, $this->project_manager->get_plugin_name());
+        $this->file_manager->generate_zip($plugin_directory, $builder_folder, $this->project_manager->get_plugin_name(), $version);
         $io->write('End zip artifact', true);
     }
 }

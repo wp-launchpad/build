@@ -28,7 +28,7 @@ class Version
         $this->value = $value;
     }
     public function increase(Type $type = null) {
-        $type = is_null($type) ? $type->get_value(): Type::MINOR;
+        $type = is_null($type) ? $type->get_value(): Type::PATCH;
         if($type === Type::FIXED || $type === Type::FIXED_SHORT) {
             return;
         }
@@ -40,7 +40,7 @@ class Version
             $parts []= $part;
         }
 
-        if($type === Type::MAJOR || $type === Type::MAJOR_SHORT) {
+        if($type === Type::MINOR || $type === Type::MINOR_SHORT) {
             $first_part = array_shift($parts);
             $part = array_shift($parts);
             $part ++;
