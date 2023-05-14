@@ -42,8 +42,9 @@ class ServiceProvider implements ServiceProviderInterface
 
     public function attach_commands(App $app): App
     {
-        $project_manager = new ProjectManager($this->filesystem);
+        $project_manager = new ProjectManager($this->filesystem, $this->configs);
         $files_manager = new FilesManager($this->filesystem);
         $app->add(new BuildArtifactCommand($files_manager, $project_manager));
+        return $app;
     }
 }

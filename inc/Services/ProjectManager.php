@@ -58,6 +58,12 @@ class ProjectManager
         $shell->execute();
     }
 
+    public function run_optimise_autoload(string $plugin_directory) {
+        $shell = new Shell($this->findComposer() . ' dumpautoload -o');
+        $shell->setOptions($plugin_directory);
+        $shell->execute();
+    }
+
     public function update_version(Version $version = null) {
         $new_version = is_null($version) ? '1.0.0' : $version->get_value();
         if(! $this->filesystem->has(self::PARAMETERS_PATH)) {

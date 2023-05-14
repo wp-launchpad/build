@@ -22,21 +22,33 @@ class FilesManager
     }
 
     public function copy(string $folder, string $destination, array $exclusions = []) {
-        foreach ($this->filesystem->listContents($folder) as $content) {
-            if(in_array($content, $exclusions)) {
+        foreach ($this->filesystem->listContents($folder, true) as $content) {
+            if(in_array($content['path'], $exclusions)) {
                 continue;
             }
-            $this->filesystem->copy($content, $destination);
+            if($content['type'] === 'dir') {
+                $this->filesystem->createDir($destination . DIRECTORY_SEPARATOR . $content['path']);
+                continue;
+            }
+            $this->filesystem->copy($content['path'], $destination . DIRECTORY_SEPARATOR . $content['path']);
         }
     }
 
     public function remove(string $node) {
+        if(! $this->filesystem->has($node)) {
+            return;
+        }
+        $data = $this->filesystem->getMetadata($node);
+        if($data['type'] === 'dir') {
+            $this->filesystem->deleteDir($node);
+            return;
+        }
         $this->filesystem->delete($node);
     }
 
     public function clean_folder(string $folder) {
         foreach ($this->filesystem->listContents($folder) as $content) {
-            $this->filesystem->delete($content);
+            $this->remove($content['path']);
         }
     }
 
