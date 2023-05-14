@@ -2,6 +2,9 @@
 
 namespace LaunchpadBuild\Commands;
 
+use LaunchpadBuild\Entities\InvalidValue;
+use LaunchpadBuild\Entities\Type;
+use LaunchpadBuild\Entities\Version;
 use LaunchpadBuild\Services\FilesManager;
 use LaunchpadBuild\Services\ProjectManager;
 use LaunchpadCLI\Commands\Command;
@@ -33,6 +36,7 @@ class BuildArtifactCommand extends Command
 
         $this
             ->option('-r --release', 'Version of the plugin')
+            ->option('-t --type', 'Type of the build')
             // Usage examples:
             ->usage(
             // append details or explanation of given example with ` ## ` so they will be uniformly aligned when shown
@@ -47,20 +51,39 @@ class BuildArtifactCommand extends Command
      * @return void
      * @throws \League\Flysystem\FileNotFoundException
      */
-    public function execute($release)
+    public function execute($release, $type)
     {
+        $io = $this->app()->io();
+
+        try {
+            $type = new Type($type?: Type::MINOR);
+        } catch (InvalidValue $e) {
+            $io->write('The type value is invalid', true);
+        }
+
+        try {
+            $old_version = $this->project_manager->get_version();
+            $version = new Version($release ?: $old_version);
+        } catch (InvalidValue $e) {
+            $io->write('The version should be 1.0.1 format', true);
+            return;
+        }
+
+        if(! $release) {
+            $version->increase($type);
+        }
+
         $builder_folder = 'build';
         $plugin_directory = $builder_folder . DIRECTORY_SEPARATOR . $this->project_manager->get_plugin_name();
-        $io = $this->app()->io();
         $io->write('Start cleaning build folder', true);
         $this->file_manager->clean_folder($builder_folder);
         $io->write('End cleaning build folder', true);
-        $io->write('Start copying assets', true);
-        $this->file_manager->copy('.', $plugin_directory, [$builder_folder, '.git', '.github', '.idea', 'phpcs.xml', 'README.MD']);
-        $io->write('End copying assets', true);
         $io->write('Start updating version', true);
         $this->project_manager->update_version();
         $io->write('End updating version', true);
+        $io->write('Start copying assets', true);
+        $this->file_manager->copy('.', $plugin_directory, [$builder_folder, '.git', '.github', '.idea', 'phpcs.xml', 'README.MD']);
+        $io->write('End copying assets', true);
         $io->write('Start regular dependencies installation', true);
         $this->project_manager->run_regular_install($plugin_directory);
         $io->write('End regular dependencies installation', true);

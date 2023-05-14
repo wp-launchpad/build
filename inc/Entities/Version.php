@@ -27,11 +27,32 @@ class Version
         }
         $this->value = $value;
     }
-    public function increase() {
+    public function increase(Type $type = null) {
+        $type = is_null($type) ? $type->get_value(): Type::MINOR;
+        if($type === Type::FIXED || $type === Type::FIXED_SHORT) {
+            return;
+        }
+
         $parts = explode(".", $this->value);
-        $part = array_pop($parts);
-        $part ++;
-        $parts []= $part;
+        if($type === Type::PATCH || $type === Type::PATCH_SHORT) {
+            $part = array_pop($parts);
+            $part ++;
+            $parts []= $part;
+        }
+
+        if($type === Type::MAJOR || $type === Type::MAJOR_SHORT) {
+            $first_part = array_shift($parts);
+            $part = array_shift($parts);
+            $part ++;
+            array_unshift($parts, $part);
+            array_unshift($parts, $first_part);
+        }
+
+        if($type === Type::MAJOR || $type === Type::MAJOR_SHORT) {
+            $part = array_shift($parts);
+            $part ++;
+            array_unshift($parts, $part);
+        }
 
         $this->value = implode( ".", $parts );
     }

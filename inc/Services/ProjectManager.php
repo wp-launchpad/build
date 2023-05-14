@@ -64,6 +64,17 @@ class ProjectManager
         $shell->execute();
     }
 
+    public function get_version(): string {
+        if(! $this->filesystem->has(self::PARAMETERS_PATH)) {
+            return '';
+        }
+        $content = $this->filesystem->read(self::PARAMETERS_PATH);
+        if(! preg_match('/[\'"]plugin_version[\'"]\s*=>\s*[\'"](?<version>[.0-9]*)[\'"]/', $content, $match)) {
+            return '';
+        }
+        return $match['version'];
+    }
+
     public function update_version(Version $version = null) {
         $new_version = is_null($version) ? '1.0.0' : $version->get_value();
         if(! $this->filesystem->has(self::PARAMETERS_PATH)) {
@@ -88,7 +99,7 @@ class ProjectManager
             return;
         }
         $content = $this->filesystem->read($main_file);
-        if(! preg_match('/\*\bVersion:\b(?<version>[.0-9]*)/', $content, $match)) {
+        if(! preg_match('/\*\s*Version:\s*(?<version>[.0-9]*)/', $content, $match)) {
             return;
         }
         $version = $match['version'];
