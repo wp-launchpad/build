@@ -28,7 +28,7 @@ class Version
         $this->value = $value;
     }
     public function increase(Type $type = null) {
-        $type = is_null($type) ? $type->get_value(): Type::PATCH;
+        $type = ! is_null($type) ? $type->get_value(): Type::PATCH;
         if($type === Type::FIXED || $type === Type::FIXED_SHORT) {
             return;
         }
