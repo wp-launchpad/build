@@ -23,7 +23,7 @@ class FilesManager
 
     public function copy(string $folder, string $destination, array $exclusions = []) {
         foreach ($this->filesystem->listContents($folder, true) as $content) {
-            if(in_array($content['path'], $exclusions)) {
+            if($this->is_excluded($content['path'], $exclusions)) {
                 continue;
             }
             if($content['type'] === 'dir') {
@@ -32,6 +32,18 @@ class FilesManager
             }
             $this->filesystem->copy($content['path'], $destination . DIRECTORY_SEPARATOR . $content['path']);
         }
+    }
+
+    protected function is_excluded(string $path, array $exclusions = []): bool {
+        if(in_array($path, $exclusions)) {
+            return true;
+        }
+        foreach ($exclusions as $exclusion) {
+            if(preg_match("/^$exclusion/", $path)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public function remove(string $node) {
