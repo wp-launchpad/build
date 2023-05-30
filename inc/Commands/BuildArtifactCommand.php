@@ -8,9 +8,13 @@ use LaunchpadBuild\Entities\Version;
 use LaunchpadBuild\Services\FilesManager;
 use LaunchpadBuild\Services\ProjectManager;
 use LaunchpadCLI\Commands\Command;
+use LaunchpadCLI\Events\UseHookTrait;
+use LaunchpadCLI\ServiceProviders\EventDispatcherAwareInterface;
+use LaunchpadCLI\ServiceProviders\EventDispatcherAwareTrait;
 
-class BuildArtifactCommand extends Command
+class BuildArtifactCommand extends Command implements EventDispatcherAwareInterface
 {
+    use UseHookTrait;
     /**
      * @var FilesManager
      */
@@ -82,16 +86,23 @@ class BuildArtifactCommand extends Command
         $this->project_manager->update_version($version);
         $io->write('End updating version', true);
         $io->write('Start copying assets', true);
-        $this->file_manager->copy('.', $plugin_directory, [$builder_folder, '.git', '.github', '.idea', 'phpcs.xml', 'README.MD', '_dev']);
+        $parameters = $this->apply_filter('builder_copy_excluded_files', ['files' => [$builder_folder, '.git', '.github', '.idea', 'phpcs.xml', 'README.MD', '_dev', 'tests', 'bin']]);
+        $this->file_manager->copy('.', $plugin_directory, $parameters['files']);
         $io->write('End copying assets', true);
         $io->write('Start regular dependencies installation', true);
         $this->project_manager->run_regular_install($plugin_directory);
         $io->write('End regular dependencies installation', true);
         $io->write('Start delete develop resources', true);
-        $this->file_manager->remove($plugin_directory . DIRECTORY_SEPARATOR . 'tests');
-        $this->file_manager->remove($plugin_directory . DIRECTORY_SEPARATOR . 'bin');
-        $this->file_manager->remove($plugin_directory . DIRECTORY_SEPARATOR . 'composer.lock');
-        $this->file_manager->remove($plugin_directory . DIRECTORY_SEPARATOR . 'vendor');
+        $parameters = $this->apply_filter('builder_remove_files', [
+            'files' => [
+                $plugin_directory . DIRECTORY_SEPARATOR . 'composer.lock',
+                $plugin_directory . DIRECTORY_SEPARATOR . 'vendor'
+            ],
+            'root_dir' => $plugin_directory
+        ]);
+        foreach ($parameters['files'] as $file) {
+            $this->file_manager->remove($file);
+        }
         $io->write('End delete develop resources', true);
         $io->write('Start optimized dependencies installation', true);
         $this->project_manager->run_optimised_install($plugin_directory);

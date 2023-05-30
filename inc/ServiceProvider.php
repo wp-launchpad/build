@@ -8,11 +8,14 @@ use LaunchpadBuild\Services\FilesManager;
 use LaunchpadBuild\Services\ProjectManager;
 use LaunchpadCLI\App;
 use LaunchpadCLI\Entities\Configurations;
+use LaunchpadCLI\ServiceProviders\EventDispatcherAwareInterface;
+use LaunchpadCLI\ServiceProviders\EventDispatcherAwareTrait;
 use LaunchpadCLI\ServiceProviders\ServiceProviderInterface;
 use League\Flysystem\Filesystem;
 
-class ServiceProvider implements ServiceProviderInterface
+class ServiceProvider implements ServiceProviderInterface, EventDispatcherAwareInterface
 {
+    use EventDispatcherAwareTrait;
     /**
      * Interacts with the filesystem.
      *
@@ -44,7 +47,8 @@ class ServiceProvider implements ServiceProviderInterface
     {
         $project_manager = new ProjectManager($this->filesystem, $this->configs);
         $files_manager = new FilesManager($this->filesystem);
-        $app->add(new BuildArtifactCommand($files_manager, $project_manager));
+        $command = new BuildArtifactCommand($files_manager, $project_manager);
+        $app->add($command);
         return $app;
     }
 }
