@@ -7,10 +7,11 @@ use LaunchpadBuild\Entities\Type;
 use LaunchpadBuild\Entities\Version;
 use LaunchpadBuild\Services\FilesManager;
 use LaunchpadBuild\Services\ProjectManager;
+use LaunchpadBuild\Steps\StepInterface;
 use LaunchpadCLI\Commands\Command;
 use LaunchpadCLI\Events\UseHookTrait;
 use LaunchpadCLI\ServiceProviders\EventDispatcherAwareInterface;
-use LaunchpadCLI\ServiceProviders\EventDispatcherAwareTrait;
+use League\Pipeline\PipelineBuilderInterface;
 
 class BuildArtifactCommand extends Command implements EventDispatcherAwareInterface
 {
@@ -26,17 +27,29 @@ class BuildArtifactCommand extends Command implements EventDispatcherAwareInterf
     protected $project_manager;
 
     /**
+     * @var PipelineBuilderInterface
+     */
+    protected $pipeline_builder;
+    /**
+     * @var StepInterface[]
+     */
+    protected $steps;
+
+    /**
      * Instantiate the class.
      *
      * @param FilesManager $file_manager
      * @param ProjectManager $project_manager
+     * @param StepInterface[] $steps
      */
-    public function __construct(FilesManager $file_manager, ProjectManager $project_manager)
+    public function __construct(FilesManager $file_manager, ProjectManager $project_manager, PipelineBuilderInterface $pipeline_builder, array $steps)
     {
         parent::__construct('build', 'Build the plugin');
 
         $this->file_manager = $file_manager;
         $this->project_manager = $project_manager;
+        $this->steps = $steps;
+        $this->pipeline_builder = $pipeline_builder;
 
         $this
             ->option('-r --release', 'Version of the plugin')
@@ -79,39 +92,22 @@ class BuildArtifactCommand extends Command implements EventDispatcherAwareInterf
 
         $builder_folder = 'build';
         $plugin_directory = $builder_folder . DIRECTORY_SEPARATOR . $this->project_manager->get_plugin_name();
-        $io->write('Start cleaning build folder', true);
-        $this->file_manager->clean_folder($builder_folder);
-        $io->write('End cleaning build folder', true);
-        $io->write('Start updating version', true);
-        $this->project_manager->update_version($version);
-        $io->write('End updating version', true);
-        $io->write('Start copying assets', true);
-        $parameters = $this->apply_filter('builder_copy_excluded_files', ['files' => [$builder_folder, '.git', '.github', '.idea', 'phpcs.xml', 'README.MD', '_dev', 'tests', 'bin']]);
-        $this->file_manager->copy('.', $plugin_directory, $parameters['files']);
-        $io->write('End copying assets', true);
-        $io->write('Start regular dependencies installation', true);
-        $this->project_manager->run_regular_install($plugin_directory);
-        $io->write('End regular dependencies installation', true);
-        $io->write('Start delete develop resources', true);
-        $parameters = $this->apply_filter('builder_remove_files', [
-            'files' => [
-                $plugin_directory . DIRECTORY_SEPARATOR . 'composer.lock',
-                $plugin_directory . DIRECTORY_SEPARATOR . 'vendor'
-            ],
-            'root_dir' => $plugin_directory
+
+        $parameters = $this->apply_filter('builder_pipeline_steps', [
+            'steps' => $this->steps,
         ]);
-        foreach ($parameters['files'] as $file) {
-            $this->file_manager->remove($file);
+
+        foreach ($parameters['steps'] as $step) {
+            $this->pipeline_builder->add($step);
         }
-        $io->write('End delete develop resources', true);
-        $io->write('Start optimized dependencies installation', true);
-        $this->project_manager->run_optimised_install($plugin_directory);
-        $io->write('End optimized dependencies installation', true);
-        $io->write('Start optimize autoloader', true);
-        $this->project_manager->run_optimise_autoload($plugin_directory);
-        $io->write('End optimize autoloader', true);
-        $io->write('Start zip artifact', true);
-        $this->file_manager->generate_zip($plugin_directory, $builder_folder, $this->project_manager->get_plugin_name(), $version);
-        $io->write('End zip artifact', true);
+        $pipeline = $this->pipeline_builder->build();
+
+        $payload = $this->apply_filter('builder_pipeline_payload', [
+            'builder_folder' => $builder_folder,
+            'plugin_directory' => $plugin_directory,
+            'version' => $version,
+        ]);
+
+        $pipeline->process($payload);
     }
 }

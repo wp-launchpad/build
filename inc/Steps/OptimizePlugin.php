@@ -2,11 +2,40 @@
 
 namespace LaunchpadBuild\Steps;
 
-class OptimizePlugin implements StepInterface
+use LaunchpadBuild\Services\ProjectManager;
+
+class OptimizePlugin extends AbstractStep
 {
 
-    public function __invoke($payload): array
+    /**
+     * @var ProjectManager
+     */
+    protected $project_manager;
+
+    protected function get_beginning_message(): string
     {
-        // TODO: Implement __invoke() method.
+        return 'Start optimize plugin';
+    }
+
+    protected function get_ending_message(): string
+    {
+        return 'End optimize plugin';
+    }
+
+    protected function process($payload)
+    {
+        if(! is_array($payload) || ! key_exists('plugin_directory', $payload)) {
+            return;
+        }
+
+        $plugin_directory = $payload['plugin_directory'];
+
+        $this->project_manager->run_optimised_install($plugin_directory);
+        $this->project_manager->run_optimise_autoload($plugin_directory);
+    }
+
+    public function get_id(): string
+    {
+        return 'optimize_plugin';
     }
 }
