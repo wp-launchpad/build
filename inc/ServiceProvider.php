@@ -6,13 +6,24 @@ use Ahc\Cli\Helper\Shell;
 use LaunchpadBuild\Commands\BuildArtifactCommand;
 use LaunchpadBuild\Services\FilesManager;
 use LaunchpadBuild\Services\ProjectManager;
+use LaunchpadBuild\Steps\CleanDevelopAssets;
+use LaunchpadBuild\Steps\CleanFolder;
+use LaunchpadBuild\Steps\CopyAssets;
+use LaunchpadBuild\Steps\DependenciesInstallation;
+use LaunchpadBuild\Steps\OptimizePlugin;
+use LaunchpadBuild\Steps\UpdateVersion;
+use LaunchpadBuild\Steps\ZipArtifact;
 use LaunchpadCLI\App;
 use LaunchpadCLI\Entities\Configurations;
+use LaunchpadCLI\ServiceProviders\EventDispatcherAwareInterface;
+use LaunchpadCLI\ServiceProviders\EventDispatcherAwareTrait;
 use LaunchpadCLI\ServiceProviders\ServiceProviderInterface;
 use League\Flysystem\Filesystem;
+use League\Pipeline\PipelineBuilder;
 
-class ServiceProvider implements ServiceProviderInterface
+class ServiceProvider implements ServiceProviderInterface, EventDispatcherAwareInterface
 {
+    use EventDispatcherAwareTrait;
     /**
      * Interacts with the filesystem.
      *
@@ -44,7 +55,28 @@ class ServiceProvider implements ServiceProviderInterface
     {
         $project_manager = new ProjectManager($this->filesystem, $this->configs);
         $files_manager = new FilesManager($this->filesystem);
-        $app->add(new BuildArtifactCommand($files_manager, $project_manager));
+        $steps = $this->create_steps($project_manager, $files_manager);
+        $pipeline_builder = new PipelineBuilder();
+        $command = new BuildArtifactCommand($files_manager, $project_manager, $pipeline_builder, $steps);
+        $app->add($command);
         return $app;
+    }
+
+    protected function create_steps(ProjectManager $project_manager, FilesManager $files_manager) {
+        $steps = [];
+
+        $steps []= new CleanFolder($files_manager);
+        $copy_assets_step = new CopyAssets($files_manager);
+        $copy_assets_step->set_event_dispatcher($this->event_dispatcher);
+        $steps []= $copy_assets_step;
+        $steps []= new UpdateVersion($project_manager);
+        $steps []= new DependenciesInstallation($project_manager);
+        $clean_develop_assets_step = new CleanDevelopAssets($files_manager);
+        $clean_develop_assets_step->set_event_dispatcher($this->event_dispatcher);
+        $steps []= $clean_develop_assets_step;
+        $steps []= new OptimizePlugin($project_manager);
+        $steps []= new ZipArtifact($files_manager);
+
+        return $steps;
     }
 }
