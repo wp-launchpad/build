@@ -12,6 +12,14 @@ class OptimizePlugin extends AbstractStep
      */
     protected $project_manager;
 
+    /**
+     * @param ProjectManager $project_manager
+     */
+    public function __construct(ProjectManager $project_manager)
+    {
+        $this->project_manager = $project_manager;
+    }
+
     protected function get_beginning_message(): string
     {
         return 'Start optimize plugin';
