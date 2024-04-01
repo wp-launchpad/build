@@ -43,7 +43,22 @@ class CopyAssets extends AbstractStep implements EventDispatcherAwareInterface
         $plugin_directory = $payload['plugin_directory'];
         $builder_folder = $payload['builder_folder'];
 
-        $parameters = $this->apply_filter('builder_copy_excluded_files', ['files' => [$builder_folder, '.git', '.github', '.idea', 'phpcs.xml', 'README.MD', '_dev', 'tests', 'bin']]);
+        $parameters = $this->apply_filter('builder_copy_excluded_files', [
+            'files' =>
+                [
+                    $builder_folder,
+                    '.git',
+                    '.github',
+                    '.idea',
+                    'phpcs.xml',
+                    'README.MD',
+                    '_dev',
+                    'tests',
+                    'bin',
+                    'package.json',
+                    'package.lock',
+                    'node_modules'
+                ]]);
         $this->file_manager->copy('.', $plugin_directory, $parameters['files']);
     }
 
