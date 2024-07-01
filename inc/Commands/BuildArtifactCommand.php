@@ -109,6 +109,7 @@ class BuildArtifactCommand extends Command implements EventDispatcherAwareInterf
         $payload = $this->apply_filter('builder_pipeline_payload', [
             'builder_folder' => $builder_folder,
             'plugin_directory' => $plugin_directory,
+            'plugin_name' => $this->project_manager->get_plugin_name(),
             'version' => $version,
         ]);
 
