@@ -58,6 +58,13 @@ class ProjectManager
         $shell->execute();
     }
 
+    public function run_remove_installers(string $plugin_directory)
+    {
+        $shell = new Shell($this->findComposer() . ' remove composer/installers --update-no-dev --no-scripts --ignore-platform-reqs');
+        $shell->setOptions($plugin_directory);
+        $shell->execute();
+    }
+
     public function run_optimise_autoload(string $plugin_directory) {
         $shell = new Shell($this->findComposer() . ' dumpautoload -o');
         $shell->setOptions($plugin_directory);

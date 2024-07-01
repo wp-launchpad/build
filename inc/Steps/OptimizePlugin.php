@@ -39,6 +39,7 @@ class OptimizePlugin extends AbstractStep
         $plugin_directory = $payload['plugin_directory'];
 
         $this->project_manager->run_optimised_install($plugin_directory);
+        $this->project_manager->run_remove_installers($plugin_directory);
         $this->project_manager->run_optimise_autoload($plugin_directory);
     }
 
