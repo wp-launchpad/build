@@ -72,6 +72,10 @@ class BuildArtifactCommand extends Command implements EventDispatcherAwareInterf
     {
         $io = $this->app()->io();
 
+        foreach ($this->steps as $step) {
+            $step->set_io($io);
+        }
+
         try {
             $type = new Type($type?: Type::PATCH);
         } catch (InvalidValue $e) {

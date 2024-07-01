@@ -11,15 +11,20 @@ abstract class AbstractStep implements StepInterface
      */
     protected $io;
 
+    public function set_io(Interactor $io): void
+    {
+        $this->io = $io;
+    }
+
     public function __invoke($payload): array
     {
         $this->io->write($this->get_beginning_message(), true);
         $result = $this->process($payload);
         $this->io->write($this->get_ending_message(), true);
         if(! is_array($result)) {
-            return $result;
+            return $payload;
         }
-        return $payload;
+        return $result;
     }
 
     abstract protected function get_beginning_message(): string;
