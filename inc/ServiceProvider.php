@@ -18,6 +18,7 @@ use LaunchpadCLI\Entities\Configurations;
 use LaunchpadCLI\ServiceProviders\EventDispatcherAwareInterface;
 use LaunchpadCLI\ServiceProviders\EventDispatcherAwareTrait;
 use LaunchpadCLI\ServiceProviders\ServiceProviderInterface;
+use League\Event\EventDispatcher;
 use League\Flysystem\Filesystem;
 use League\Pipeline\PipelineBuilder;
 
@@ -58,6 +59,7 @@ class ServiceProvider implements ServiceProviderInterface, EventDispatcherAwareI
         $steps = $this->create_steps($project_manager, $files_manager);
         $pipeline_builder = new PipelineBuilder();
         $command = new BuildArtifactCommand($files_manager, $project_manager, $pipeline_builder, $steps);
+        $command->set_event_dispatcher(new EventDispatcher());
         $app->add($command);
         return $app;
     }
