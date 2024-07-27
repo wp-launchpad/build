@@ -4,6 +4,7 @@ namespace LaunchpadBuild;
 
 use Ahc\Cli\Helper\Shell;
 use LaunchpadBuild\Commands\BuildArtifactCommand;
+use LaunchpadBuild\Listeners\ExcludedFiles\GitAttributes;
 use LaunchpadBuild\Services\FilesManager;
 use LaunchpadBuild\Services\ProjectManager;
 use LaunchpadBuild\Steps\CleanDevelopAssets;
@@ -21,6 +22,7 @@ use LaunchpadCLI\ServiceProviders\ServiceProviderInterface;
 use League\Event\EventDispatcher;
 use League\Flysystem\Filesystem;
 use League\Pipeline\PipelineBuilder;
+use PHPUnit\Runner\Hook;
 
 class ServiceProvider implements ServiceProviderInterface, EventDispatcherAwareInterface
 {
@@ -59,7 +61,8 @@ class ServiceProvider implements ServiceProviderInterface, EventDispatcherAwareI
         $steps = $this->create_steps($project_manager, $files_manager);
         $pipeline_builder = new PipelineBuilder();
         $command = new BuildArtifactCommand($files_manager, $project_manager, $pipeline_builder, $steps);
-        $command->set_event_dispatcher(new EventDispatcher());
+        $command->set_event_dispatcher($this->event_dispatcher);
+		$this->event_dispatcher->subscribeTo('builder_copy_excluded_files', new GitAttributes($this->filesystem));
         $app->add($command);
         return $app;
     }

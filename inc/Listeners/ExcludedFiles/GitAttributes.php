@@ -14,17 +14,32 @@ class GitAttributes implements Listener {
 	 */
 	protected $filesystem;
 
+	/**
+	 * @param Filesystem $filesystem
+	 */
+	public function __construct( Filesystem $filesystem ) {
+		$this->filesystem = $filesystem;
+	}
+
 	public function __invoke( object $event ): void {
 		var_dump($event);
-		if( ! $this->filesystem->has(serialize(self::ATTRIBUTES_FILE))) {
+		if( ! $this->filesystem->has(self::ATTRIBUTES_FILE)) {
 			return;
 		}
 
 		$content = $this->filesystem->read(self::ATTRIBUTES_FILE);
 		$lines = explode("\n", $content);
-		foreach ($lines as $line) {
 
+		$parameters = $event->get_parameters();
+
+		foreach ($lines as $line) {
+			if( ! preg_match('/^(.*)\sexport-ignore$/', $line, $result)) {
+				continue;
+			}
+
+			$parameters ['files'][]= $result[1];
 		}
 
+		$event->set_parameters($parameters);
 	}
 }
