@@ -1,12 +1,10 @@
 <?php
 
-namespace LaunchpadBuild\Tests\Integration;
-
-use LaunchpadCLI\AppBuilder;
+namespace RocketLauncher\Tests\Integration;
 use ReflectionObject;
-use WPMedia\PHPUnit\Unit\VirtualFilesystemTestCase;
+use WPMedia\PHPUnit\Integration\TestCase as BaseTestCase;
 
-class TestCase extends VirtualFilesystemTestCase
+class TestCase extends BaseTestCase
 {
     protected $config;
     protected static $transients         = [];
@@ -39,8 +37,6 @@ class TestCase extends VirtualFilesystemTestCase
         if ( empty( $this->config ) ) {
             $this->loadTestDataConfig();
         }
-
-		$this->init();
     }
 
     public function configTestData() {
@@ -52,18 +48,6 @@ class TestCase extends VirtualFilesystemTestCase
             ? $this->config['test_data']
             : $this->config;
     }
-
-
-	protected function launch_app(string $command) {
-		$argv = array_merge(['index.php'], explode(' ', $command));
-
-		$_SERVER['argv'] = $argv;
-		AppBuilder::enable_test_mode();
-		AppBuilder::init($this->rootVirtualUrl, [
-			\LaunchpadBuild\ServiceProvider::class,
-		]);
-		unset($_SERVER['argv']);
-	}
 
     protected function loadTestDataConfig() {
         $obj      = new ReflectionObject( $this );

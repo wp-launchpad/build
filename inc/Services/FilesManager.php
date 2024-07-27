@@ -40,6 +40,7 @@ class FilesManager
         if(in_array($path, $exclusions)) {
             return true;
         }
+
         foreach ($exclusions as $exclusion) {
             if(preg_match("/^$exclusion/", $path)) {
                 return true;

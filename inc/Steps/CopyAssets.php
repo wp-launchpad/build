@@ -59,7 +59,10 @@ class CopyAssets extends AbstractStep implements EventDispatcherAwareInterface
                     'package.lock',
                     'node_modules'
                 ]]);
-        $this->file_manager->copy('.', $plugin_directory, $parameters['files']);
+
+		var_dump($parameters['files']);
+
+		$this->file_manager->copy('.', $plugin_directory, $parameters['files']);
     }
 
     public function get_id(): string
